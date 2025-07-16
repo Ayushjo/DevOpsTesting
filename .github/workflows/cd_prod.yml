@@ -1,7 +1,7 @@
 name: Deploy to staging
 on:
   push:
-    branches: [ main ]
+    branches: [ production ]
 jobs:
   redeploy_everything:
     runs-on: ubuntu-latest
@@ -15,17 +15,17 @@ jobs:
           mkdir -p ~/.ssh/
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan 51.21.249.250 >> ~/.ssh/known_hosts
+          ssh-keyscan 13.48.130.219 >> ~/.ssh/known_hosts
 
       - name: Deploy to Server
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@51.21.249.250 << 'EOF'
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@13.48.130.219 << 'EOF'
             cd DevOpsTesting/
             git pull origin main
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             npm install
             npm run build
-            pm2 restart 4
+            pm2 restart 1
             pm2 restart 0
           EOF
