@@ -1,11 +1,11 @@
-name: Deploy to staging
+name: Deploy to Production
 on:
   push:
     branches: [ production ]
 jobs:
   redeploy_everything:
     runs-on: ubuntu-latest
-    name: Deploying everything to the staging cluster
+    name: Deploying everything to the production server
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -19,13 +19,30 @@ jobs:
 
       - name: Deploy to Server
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@13.48.130.219 << 'EOF'
-            cd DevOpsTesting/
-            git pull origin main
+          ssh -i ~/.ssh/id_rsa ubuntu@13.48.130.219 << 'EOF'
+            # Go to the main project directory
+            cd ~/DevOpsTesting/
+
+            # 1. Fetch all updates and forcefully reset to the 'production' branch
+            git fetch origin
+            git reset --hard origin/production
+
+            # Source NVM to make node/npm available
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            npm install
-            npm run build
-            pm2 restart 1
-            pm2 restart 0
+
+            # --- Backend Deployment (in root folder) ---
+            echo "Deploying backend..."
+            npm install # Install backend dependencies
+            pm2 restart index # Restart backend server by name
+
+            # --- Frontend Deployment (in fe-server folder) ---
+            echo "Deploying frontend..."
+            cd fe-server/ # Go into the frontend directory
+            npm install   # Install frontend dependencies
+            npm run build # Build the new frontend code
+            pm2 restart fe-server # Restart frontend server by name
+
+            echo "Deployment complete!"
+            pm2 list # Display final status of all processes
           EOF
