@@ -21,7 +21,8 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@51.21.249.250 << 'EOF'
             cd DevOpsTesting/
-            git pull origin main
+            git fetch --all
+            git reset --hard origin/main
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             cd fe-server/
